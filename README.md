@@ -1,4 +1,4 @@
-# AskGptToCommentYourCFunctionsAskGptToCommentYourCFunctions
+# AskGptToCommentYourCFunctions
 
 This project allows you to comment your C functions automatically using OpenAI's GPT-3 language model.
 # Requirements
