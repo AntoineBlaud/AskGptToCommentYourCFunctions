@@ -2,6 +2,7 @@ import contextlib
 import sys
 import re
 import argparse
+import time
 import textwrap
 
 # import pyparsing module for parsing C code
@@ -12,6 +13,8 @@ import openai
 
 # set OpenAI API key
 openai.api_key = ""
+openai_free_version = False
+max_try = 3
 
 def _query_model(query, max_tokens=4096):
     """
@@ -23,23 +26,32 @@ def _query_model(query, max_tokens=4096):
     # subtract the length of the query from the maximum number of tokens
     max_tokens = max_tokens - len(query)
     
-    # try to send the query to the model
-    try:
-        response = openai.Completion.create(
-            model="text-davinci-003",
-            prompt=query,
-            temperature=0.6,
-            max_tokens=max_tokens,
-            top_p=1,
-            frequency_penalty=1,
-            presence_penalty=1,
-            timeout=60  #
-        )
-        response = "\n//".join(textwrap.wrap(response.choices[0].text, 80, replace_whitespace=False)) + "\n"
-        return response
-    except openai.InvalidRequestError as e:
-        print(f"Invalid request: {str(e)}")
-        raise e
+    # max_try_counter
+    max_try_counter = 0
+    
+    while max_try_counter < max_try:
+    
+        # try to send the query to the model
+        try:
+            response = openai.Completion.create(
+                model="text-davinci-003",
+                prompt=query,
+                temperature=0.6,
+                max_tokens=max_tokens,
+                top_p=1,
+                frequency_penalty=1,
+                presence_penalty=1,
+                timeout=60  #
+            )
+            response = "\n//".join(textwrap.wrap(response.choices[0].text, 80, replace_whitespace=False)) + "\n"
+            return response
+        except openai.InvalidRequestError as e:
+            print(f"Invalid request: {str(e)}")
+            max_try_counter += 1
+            print("API limit reached, waiting 60 seconds. Don't hesitate to register a paid account \
+                  to avoid this limit.")
+            time.sleep(60)
+            
 
 def query_func_model(content):
     query = "Could you write a top comment to explain important function steps and it goal.\n" + str(content)
@@ -134,7 +146,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('input_file', help='Path to the input file')
     parser.add_argument('output_file', help='Path to the output file')
+    parser.add_argument('--api_key', help='OpenAI API key')
+    parser.add_argument('--free', action='store_true', help='Use of free OpenAI API version ( limited in tokens per minute). So it will slow down the process.')
     args = parser.parse_args()
+    
+    # set OpenAI API key
+    openai.api_key = args.api_key
+    
+    # set OpenAI API version
+    openai_free_version = args.free
 
     # read the input file
     with open(args.input_file, 'r') as f:
@@ -159,10 +179,15 @@ def main():
         content = content.replace(definition, replace) 
         print(replace)
         
+        # write refactored definitions to the output file in real time
+        with open(args.output_file, 'w') as f:
+            f.write(content)
+        
 
-    # write refactored definitions to the output file
-    with open(args.output_file, 'w') as f:
-        f.write(content)
+        if openai_free_version:
+            print("Sleeping for 15 seconds to avoid hitting the free API limit")
+            time.sleep(15)
+    
 
 if __name__ == '__main__':
     main()

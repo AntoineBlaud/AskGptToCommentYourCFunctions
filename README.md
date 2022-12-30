@@ -8,12 +8,12 @@ This project allows you to comment your C functions automatically using OpenAI's
 
 # Setup
 
-Set "openai.api_key" with your private api key
+Register an account and get a private api key.
 
 # Usage
 
 ```
-python main.py input_file output_file
+python main.py input_file output_file --api_key <you_key> --free (if you're using a free version)
 ```
 # Example
 ```
