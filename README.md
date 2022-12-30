@@ -13,11 +13,11 @@ Register an account and get a private api key.
 # Usage
 
 ```
-python main.py input_file output_file --api_key <you_key> --free (if you're using a free version)
+python pleaseAddComment.py input_file output_file --api_key <you_key> --free (if you're using a free version)
 ```
 # Example
 ```
-python main.py input.c output.c
+python pleaseAddComment.py input.c output.c
 ```
 Go into example directory to appreciate a result on *frida guminterceptor* . Try to understand the code with and without!
 
